@@ -13,8 +13,6 @@ namespace FixingTheCase
 
         static void Main(string[] args)
         {
-            Start:
-
             Console.WriteLine("Enter a set of names, separated by a comma");
 
             string originalInput = Console.ReadLine();
@@ -23,11 +21,11 @@ namespace FixingTheCase
 
             if (!hasEnteredADigit)
             {
-                // Pass the new string checked for digits
-
                 RemoveTheWhiteSpace(ref originalInput);
 
                 string[] inputNames = SeparateTheInput(ref originalInput);
+
+                EvaluateInputString(inputNames);
 
                 var namesList = FixTheNameCases(inputNames);
 
@@ -39,8 +37,6 @@ namespace FixingTheCase
             else
             {
                 Console.WriteLine("You've entered a number, please repeat your input...\n");
-
-                goto Start;
             }
 
             Console.Read();
@@ -77,7 +73,7 @@ namespace FixingTheCase
             return separatedStrings;
         }
 
-        static List<string> FixTheNameCases(string[] inputNames)
+        static List<string> FixTheNameCases(string[] inputNames) // TODO refactor for different string evaluation types
         {
             List<String> listOfNames = new List<String>();
 
@@ -130,6 +126,69 @@ namespace FixingTheCase
             }
 
             return false;
+        }
+
+        static List<int> EvaluateInputString(string[] startingInput)
+        {
+            List<int> evaluatedStringTypes = new List<int>();
+
+            bool isStringCorrect = false;
+            bool isFirstLetterCorrect = false;
+
+            int currentIteration = 0;
+
+            foreach (string aString in startingInput)
+            {
+                Console.WriteLine("The current iteration is " + currentIteration); // TODO delete later
+
+                if (Char.IsLower(aString[0]))
+                {
+                    evaluatedStringTypes.Add((int)StringState.FirstLetterWrong);
+                    Console.WriteLine("first lower letter wrong string added " + evaluatedStringTypes[currentIteration]); // TODO delete later
+                }
+                else
+                    isFirstLetterCorrect = true;
+
+                for (int i = 1; i < aString.Length; i++)
+                {
+                    if(Char.IsUpper(aString[i]))
+                    {
+                        if(!isFirstLetterCorrect)
+                        {
+                            Console.WriteLine("Removed the " + evaluatedStringTypes[currentIteration]); // TODO delete later
+                            evaluatedStringTypes.RemoveAt(currentIteration);
+                        }
+
+                        evaluatedStringTypes.Add((int)StringState.AllLettersWrong);
+                        Console.WriteLine("Non-first letter string added " + evaluatedStringTypes[currentIteration]); // TODO delete later
+                        break;
+                    }
+
+                    else
+                    {
+                        isStringCorrect = true;
+                    }
+
+                }
+
+                if(isStringCorrect && isFirstLetterCorrect)
+                {
+                    evaluatedStringTypes.Add((int)StringState.CorrectInput);
+                    Console.WriteLine("A correct string has been added " + evaluatedStringTypes[currentIteration]); // TODO delete later
+                }
+
+                isFirstLetterCorrect = false;
+                isStringCorrect = false;
+                currentIteration++;
+            }
+
+            // TODO delete later
+            for (int i = 0; i < evaluatedStringTypes.Count; i++)
+            {
+                Console.WriteLine(evaluatedStringTypes[i]);
+            }
+
+            return evaluatedStringTypes;
         }
     }
 }
