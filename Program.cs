@@ -160,6 +160,7 @@ namespace FixingTheCase
                         }
 
                         evaluatedStringTypes.Add((int)StringState.AllLettersWrong);
+                        isStringCorrect = false;
                         Console.WriteLine("Non-first letter string added " + evaluatedStringTypes[currentIteration]); // TODO delete later
                         break;
                     }
