@@ -8,40 +8,45 @@ namespace FixingTheCase
     {
         public enum StringState
         {
-            CorrectInput, FirstLetterWrong, AllLettersWrong // TODO refactor for fixing not just the first letter of the name based on the string state
+            CorrectInput, FirstLetterWrong, AllLettersWrong 
         }
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Enter a set of names, separated by a comma");
-
-            string originalInput = Console.ReadLine();
-
-            bool hasEnteredADigit = CheckForNumbersInTheInput(originalInput);
-
-            if (!hasEnteredADigit)
+            while(true)
             {
-                RemoveTheWhiteSpace(ref originalInput);
+                Console.WriteLine("Enter a set of names, separated by a comma");
 
-                string[] inputNames = SeparateTheInput(ref originalInput);
+                string originalInput = Console.ReadLine();
 
-                EvaluateInputString(inputNames);
+                bool hasEnteredADigit = CheckForNumbersInTheInput(originalInput);
 
-                var namesList = FixTheNameCases(inputNames);
+                if (!hasEnteredADigit)
+                {
+                    RemoveTheWhiteSpace(ref originalInput);
 
-                Console.WriteLine("This is a list of names you entered with the correct case:");
+                    string[] inputNames = SeparateTheInput(ref originalInput);
 
-                Console.WriteLine(OutputTheNameString(namesList));
+                    List<int> evaluatedStringTypes = EvaluateInputString(inputNames);
 
+                    var namesList = FixTheNameCases(inputNames, evaluatedStringTypes);
+
+                    Console.WriteLine("This is a list of names you entered with the correct case:");
+
+                    Console.WriteLine(OutputTheNameString(namesList));
+
+                    break;
+
+                }
+                else
+                {
+                    Console.WriteLine("You've entered a number, please repeat your input...\n");
+                }
             }
-            else
-            {
-                Console.WriteLine("You've entered a number, please repeat your input...\n");
-            }
+
+            Console.WriteLine("\nPress enter to terminate the application...");
 
             Console.Read();
-
-            Console.WriteLine("Press enter to terminate the application...");
         }
 
         static void RemoveTheWhiteSpace(ref string inputString)
@@ -64,6 +69,30 @@ namespace FixingTheCase
             inputString = reconstructedString.ToString();
         }
 
+        static string FixTheFirstLetter(string stringToFix)
+        {
+            char firstLetter = stringToFix[0];
+
+            firstLetter = char.ToUpper(firstLetter);
+
+            string fixedString = string.Concat(firstLetter, stringToFix.Substring(1, stringToFix.Length - 1));
+
+            return fixedString;
+        }
+
+        static string MakeAllTheLettersLower(string stringToChange)
+        {
+            StringBuilder stringContainer = new StringBuilder();
+
+            foreach(char letter in stringToChange)
+            {
+                char loweredLetter = Char.ToLower(letter);
+                stringContainer.Append(loweredLetter);
+            }
+
+            return stringContainer.ToString();
+        }
+
         static string[] SeparateTheInput(ref string inputString)
         {
             char separator = ',';
@@ -73,30 +102,44 @@ namespace FixingTheCase
             return separatedStrings;
         }
 
-        static List<string> FixTheNameCases(string[] inputNames) // TODO refactor for different string evaluation types
+        static List<string> FixTheNameCases(string[] inputNames, List<int> stringTypes) 
         {
-            List<String> listOfNames = new List<String>();
+            List<string> listOfNames = new List<string>();
+
+            int currentIteration = 0;
 
             foreach (string aName in inputNames)
             {
-                char firstLetter = aName[0];
-
                 StringBuilder tempStringContainer = new StringBuilder(aName.Length);
 
-                if (Char.IsLower(firstLetter))
+                StringState aNameState = (StringState)stringTypes[currentIteration];
+
+                if (currentIteration > stringTypes.Count)
+                    break;
+
+                switch(aNameState)
                 {
-                    var a = firstLetter.ToString().ToUpper();
-                    var b = aName.Substring(1, aName.Length - 1);
+                    case StringState.CorrectInput:
+                        tempStringContainer.Append(aName);
+                        listOfNames.Add(tempStringContainer.ToString());
+                        currentIteration++;
+                        continue;
 
-                    tempStringContainer.Append(a + b);
+                    case StringState.FirstLetterWrong:
+                        tempStringContainer.Append(FixTheFirstLetter(aName));
+                        listOfNames.Add(tempStringContainer.ToString());
+                        currentIteration++;
+                        continue;
 
-                    listOfNames.Add(tempStringContainer.ToString());
-                }
-                else
-                {
-                    tempStringContainer.Append(aName);
+                    case StringState.AllLettersWrong:
+                        var correctedName = MakeAllTheLettersLower(aName);
+                        tempStringContainer.Append(FixTheFirstLetter(correctedName));
+                        listOfNames.Add(tempStringContainer.ToString());
+                        currentIteration++;
+                        continue;
 
-                    listOfNames.Add(tempStringContainer.ToString());
+                    default:
+                        throw new Exception("Input was ambiguous");
                 }
             }
 
@@ -139,12 +182,9 @@ namespace FixingTheCase
 
             foreach (string aString in startingInput)
             {
-                Console.WriteLine("The current iteration is " + currentIteration); // TODO delete later
-
                 if (Char.IsLower(aString[0]))
                 {
                     evaluatedStringTypes.Add((int)StringState.FirstLetterWrong);
-                    Console.WriteLine("first lower letter wrong string added " + evaluatedStringTypes[currentIteration]); // TODO delete later
                 }
                 else
                     isFirstLetterCorrect = true;
@@ -155,13 +195,11 @@ namespace FixingTheCase
                     {
                         if(!isFirstLetterCorrect)
                         {
-                            Console.WriteLine("Removed the " + evaluatedStringTypes[currentIteration]); // TODO delete later
                             evaluatedStringTypes.RemoveAt(currentIteration);
                         }
 
                         evaluatedStringTypes.Add((int)StringState.AllLettersWrong);
                         isStringCorrect = false;
-                        Console.WriteLine("Non-first letter string added " + evaluatedStringTypes[currentIteration]); // TODO delete later
                         break;
                     }
 
@@ -175,18 +213,11 @@ namespace FixingTheCase
                 if(isStringCorrect && isFirstLetterCorrect)
                 {
                     evaluatedStringTypes.Add((int)StringState.CorrectInput);
-                    Console.WriteLine("A correct string has been added " + evaluatedStringTypes[currentIteration]); // TODO delete later
                 }
 
                 isFirstLetterCorrect = false;
                 isStringCorrect = false;
                 currentIteration++;
-            }
-
-            // TODO delete later
-            for (int i = 0; i < evaluatedStringTypes.Count; i++)
-            {
-                Console.WriteLine(evaluatedStringTypes[i]);
             }
 
             return evaluatedStringTypes;
