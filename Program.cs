@@ -21,11 +21,21 @@ namespace FixingTheCase
 
                 bool hasEnteredADigit = CheckForNumbersInTheInput(originalInput);
 
-                if (!hasEnteredADigit)
+                bool isValidInput = OriginalInputValidation(originalInput);
+
+                if (!hasEnteredADigit && isValidInput)
                 {
                     RemoveTheWhiteSpace(ref originalInput);
 
-                    string[] inputNames = SeparateTheInput(ref originalInput);
+                    RemoveUnnecessaryCharacters(ref originalInput);
+
+                    string[] inputNames = SeparateTheInput(ref originalInput, out bool containsAnEmptyString);
+
+                    if (containsAnEmptyString)
+                    {
+                        Console.WriteLine("There was an issue with your input, terminating");
+                        break;
+                    }
 
                     List<int> evaluatedStringTypes = EvaluateInputString(inputNames);
 
@@ -40,7 +50,7 @@ namespace FixingTheCase
                 }
                 else
                 {
-                    Console.WriteLine("You've entered a number, please repeat your input...\n");
+                    Console.WriteLine("Incorrect input (no names provided or numbers in input were given). \nPlease try again...");
                 }
             }
 
@@ -69,6 +79,21 @@ namespace FixingTheCase
             inputString = reconstructedString.ToString();
         }
 
+        static void RemoveUnnecessaryCharacters(ref string inputString)
+        {
+            StringBuilder stringContainer = new StringBuilder(inputString.Length);
+
+            char separator = ',';
+
+            foreach(char aCharacter in inputString)
+            {
+                if (Char.IsLetter(aCharacter) || aCharacter == separator)
+                    stringContainer.Append(aCharacter);
+            }
+
+            inputString = stringContainer.ToString();
+        }
+
         static string FixTheFirstLetter(string stringToFix)
         {
             char firstLetter = stringToFix[0];
@@ -93,11 +118,21 @@ namespace FixingTheCase
             return stringContainer.ToString();
         }
 
-        static string[] SeparateTheInput(ref string inputString)
+        static string[] SeparateTheInput(ref string inputString, out bool hasAnEmptyString)
         {
             char separator = ',';
 
             string[] separatedStrings = inputString.Split(separator);
+
+            bool containsAnEmptyString = false;
+
+            foreach(string aString in separatedStrings)
+            {
+                if (String.IsNullOrEmpty(aString))
+                    containsAnEmptyString = true;
+            }
+
+            hasAnEmptyString = containsAnEmptyString;
 
             return separatedStrings;
         }
@@ -167,6 +202,22 @@ namespace FixingTheCase
                 if (char.IsDigit(aCharacter))
                     return true;
             }
+
+            return false;
+        }
+
+        static bool OriginalInputValidation(string originalInput)
+        {
+            int numberOfLettersEntered = 0;
+
+            foreach(char aCharacter in originalInput)
+            {
+                if (Char.IsLetter(aCharacter))
+                    numberOfLettersEntered++;
+            }
+
+            if (numberOfLettersEntered > 0)
+                return true;
 
             return false;
         }
